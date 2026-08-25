@@ -1,0 +1,32 @@
+mod core;
+mod cli_options;
+
+fn print_directory_entries(path: &std::path::Path) -> Result<(), String> {
+    if !path.is_dir() {
+        return Err(format!("Error: Path is not valid: {}", path.to_string_lossy()));
+    }
+
+    for entry in std::fs::read_dir(path).unwrap() {
+        let entry = entry.unwrap();
+        print!("{}\t", entry.file_name().to_string_lossy());
+    }
+
+    Ok(())
+}
+
+
+
+fn main() {
+    let mut args = std::env::args();
+    if args.len() == 1 {
+        print_directory_entries(std::env::current_dir().unwrap().as_path()).unwrap();
+    }
+
+    if args.len() == 2 {
+
+        let str_path = args.nth(1).unwrap();
+        let path = std::path::Path::new(&str_path);
+
+        print_directory_entries(path).unwrap()
+    }
+}

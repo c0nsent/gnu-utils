@@ -2,7 +2,17 @@
 <module type="EMPTY_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/cli-parser/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ls/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/fsdfsd/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/gnu-utils/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/cli-parser/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/core/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/ls/target" />
+      <excludeFolder url="file://$MODULE_DIR$/fsdfsd/target" />
+      <excludeFolder url="file://$MODULE_DIR$/gnu-utils/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
