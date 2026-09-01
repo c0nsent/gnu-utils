@@ -1,5 +1,6 @@
-mod core;
+
 mod cli_options;
+mod core;
 
 fn print_directory_entries(path: &std::path::Path) -> Result<(), String> {
     if !path.is_dir() {
