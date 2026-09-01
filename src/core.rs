@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 use std::env;
-use std::hash::Hash;
 use crate::cli_options::{OptionType, Options};
 use std::path::Path;
 
 
 pub struct Args {
     args: HashMap<String, String>,
-    last_value: String
+    last_value: Option<String>
 }
 
 impl Args {
@@ -23,17 +22,48 @@ impl Args {
             let flag = raw_args.nth(i).unwrap();
             i+= 1;
             let value = raw_args.nth(i).unwrap();
+
             if  viable_options.has_option(&flag) {
 
-                let optionType = viable_options.get_option_type(&flag);
+                let option_type = viable_options.get_option_type(&flag)?;
 
-                match optionType {
-                    OptionType::Path => Path::new()
+                let is_viable = match option_type {
+                    OptionType::Path => Path::new(&value).exists(),
+                    OptionType::Int => value.parse::<i32>().is_ok(),
+                    OptionType::Uint => value.parse::<u32>().is_ok(),
+                    OptionType::NoValue => true
                 };
 
+                if (is_viable) {
+                    processed_args.insert(flag, value);
+                }
+                else {
+                    return Err( format!("Parsed value is not viable: {}", value));
+                }
             }
+
+
         };
 
-        /* `core::Args` value */
+        Ok(Self{
+            args: processed_args,
+            last_value: Some(last_value)
+        })
+    }
+
+    fn contains(&self, flag: &str) -> bool {
+        self.args.contains_key(flag)
+    }
+
+    fn at(&self, flag: &str) -> Option<String> {
+        self.args.get(flag).cloned()
+    }
+
+    fn has_last_value(&self) -> bool {
+        self.last_value.is_some()
+    }
+
+    fn last_value(&self) -> Option<String> {
+        self.last_value.clone()
     }
 }
