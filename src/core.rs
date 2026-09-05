@@ -1,8 +1,66 @@
 use std::collections::HashMap;
 use std::env;
-use crate::cli_options::{OptionType, Options};
 use std::path::Path;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ArgVariant {
+    Int(i64),
+    String(String),
+    None
+}
+pub struct Options {
+
+    options: 
+
+    /*    types: Vec<ArgType>,
+        long_options: HashMap<String, usize>,
+        short_options: HashMap<String, usize>,*/
+}
+
+impl Options {
+
+}
+
+
+
+
+
+/*pub struct Options {
+    args: HashMap<String, ArgType>
+}*/
+
+
+
+// impl Options {
+//
+//     pub fn new() -> Self {
+//         Self {
+//             args: HashMap::new()
+//         }
+//     }
+//
+//     pub fn add_option(&mut self, flag: &str, option: ArgType) -> Result<(), String> {
+//
+//         if flag.starts_with("--") {
+//             self.args.insert(flag, option);
+//             Ok(())
+//         }
+//         else {
+//             Err(format!("Error: {} doesn't have a flag prefix", flag))
+//         }
+//     }
+//
+//     pub fn has_option(&self, flag: &str) -> bool {
+//         self.args.contains_key(flag)
+//     }
+//
+//     pub fn get_option_type(&self, flag: &str)  -> Result<ArgType, String> {
+//         self.args
+//             .get(flag)
+//             .cloned()
+//             .ok_or_else(|| format!("Unknown option: {}", flag))
+//     }
+// }
 
 pub struct Args {
     args: HashMap<String, String>,
@@ -10,7 +68,7 @@ pub struct Args {
 }
 
 impl Args {
-    fn parse(viable_options: Options) -> Result<Self, String> {
+/*    fn parse(viable_options: Options) -> Result<Self, String> {
         let mut raw_args = env::args();
 
         let last_value = raw_args.next_back().unwrap();
@@ -28,10 +86,10 @@ impl Args {
                 let option_type = viable_options.get_option_type(&flag)?;
 
                 let is_viable = match option_type {
-                    OptionType::Path => Path::new(&value).exists(),
-                    OptionType::Int => value.parse::<i32>().is_ok(),
-                    OptionType::Uint => value.parse::<u32>().is_ok(),
-                    OptionType::NoValue => true
+                    ArgType::String => String::new(&value).exists(),
+                    ArgType::Int => value.parse::<i32>().is_ok(),
+                    ArgType::Uint => value.parse::<u32>().is_ok(),
+                    ArgType::NoValue => true
                 };
 
                 if (is_viable) {
@@ -49,6 +107,10 @@ impl Args {
             args: processed_args,
             last_value: Some(last_value)
         })
+    }*/
+
+    fn parse() {
+
     }
 
     fn contains(&self, flag: &str) -> bool {
