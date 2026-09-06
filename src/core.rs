@@ -3,15 +3,15 @@ use std::env;
 use std::path::Path;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum ArgVariant {
-    Int(i64),
-    String(String),
+pub enum ArgType {
+    Int,
+    Text,
     None
 }
 pub struct Options {
 
-    options: 
-
+    long_options: HashMap<String, ArgType>,
+    short_options: HashMap<char, ArgType>
     /*    types: Vec<ArgType>,
         long_options: HashMap<String, usize>,
         short_options: HashMap<String, usize>,*/
@@ -19,6 +19,57 @@ pub struct Options {
 
 impl Options {
 
+    fn is_long_option(option: &str) -> bool {
+
+        let option = option.strip_prefix("--");
+
+        if option.is_none() {
+            return false;
+        }
+
+        let option = option.unwrap();
+        let mut chars = option.chars();
+
+        if chars.next_back().is_some_and(|first| first.is_alphanumeric()) {
+            return false;
+        }
+
+        chars.all(|ch| ch.is_alphanumeric() || ch.eq( &'-'))
+            && chars.last().unwrap().is_alphanumeric()
+    }
+
+    fn is_short_option(option: &str) -> bool {
+        let mut option = option.chars();
+
+        option.next().is_some_and(|prefix| prefix.eq(&'-'))
+            && option.next().is_some_and(|ch| ch.is_alphanumeric())
+            && option.next().is_none()
+    }
+    pub fn new() -> Self {
+        Options {
+            long_options: HashMap::new(),
+            short_options: HashMap::new()
+        }
+    }
+
+    pub fn add_option(&mut self, option: &str, argument_type: ArgType) {
+        let mut short = option.chars();
+
+        if Self::is_long_option(option) {
+            self.long_options
+                .insert(option.strip_prefix("--").unwrap().parse().unwrap(), argument_type);
+        }
+        else if option.len() == 2
+            && short.next().is_some_and(|prefix| prefix.eq(&'-'))
+            && short.next().is_some_and(|ch| ch.is_alphanumeric())
+             {
+            self.short_options.insert(short.last().unwrap(), argument_type);
+        }
+    }
+
+    pub fn has_option(&self, option: &str) -> bool {
+        if option.start
+    }
 }
 
 
