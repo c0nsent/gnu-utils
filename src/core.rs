@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::env;
-use std::path::Path;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ArgType {
@@ -12,38 +10,37 @@ pub struct Options {
 
     long_options: HashMap<String, ArgType>,
     short_options: HashMap<char, ArgType>
-    /*    types: Vec<ArgType>,
-        long_options: HashMap<String, usize>,
-        short_options: HashMap<String, usize>,*/
 }
 
 impl Options {
 
-    fn is_long_option(option: &str) -> bool {
+    fn parse_long_option(option: &str) -> Option<String> {
+        let option = option.strip_prefix("--")?;
 
-        let option = option.strip_prefix("--");
+        let first = option.chars().next()?;
+        let last = option.chars().last()?;
 
-        if option.is_none() {
-            return false;
+        if !first.is_alphanumeric() || !last.is_alphanumeric() {
+            return None
         }
 
-        let option = option.unwrap();
-        let mut chars = option.chars();
-
-        if chars.next_back().is_some_and(|first| first.is_alphanumeric()) {
-            return false;
-        }
-
-        chars.all(|ch| ch.is_alphanumeric() || ch.eq( &'-'))
-            && chars.last().unwrap().is_alphanumeric()
+        option
+            .chars()
+            .all(|ch| ch.is_alphanumeric() || ch == '-')
+            .then(|| option.to_string())
     }
 
-    fn is_short_option(option: &str) -> bool {
+    fn parse_short_option(option: &str) -> Option<char> {
         let mut option = option.chars();
 
-        option.next().is_some_and(|prefix| prefix.eq(&'-'))
-            && option.next().is_some_and(|ch| ch.is_alphanumeric())
-            && option.next().is_none()
+        if option.next_back()?.eq(&'-')
+            && option.next()?.is_alphanumeric()
+            && option.next().is_none() {
+
+            return Some(option.nth(0)?)
+        }
+
+        None
     }
     pub fn new() -> Self {
         Options {
@@ -52,66 +49,48 @@ impl Options {
         }
     }
 
-    pub fn add_option(&mut self, option: &str, argument_type: ArgType) {
-        let mut short = option.chars();
+    pub fn add_option(&mut self, option: &str, argument_type: ArgType) -> Result<(), String>{
 
-        if Self::is_long_option(option) {
-            self.long_options
-                .insert(option.strip_prefix("--").unwrap().parse().unwrap(), argument_type);
+        //TODO: Почему-то это условие всегда выдает тру
+        if option.starts_with("--") {
+            let long = Self::parse_long_option(option)
+                .ok_or_else(|| format!("{} is not a valid long option", option))?;
+
+            self.long_options.insert(long, argument_type);
+            Ok(())
         }
-        else if option.len() == 2
-            && short.next().is_some_and(|prefix| prefix.eq(&'-'))
-            && short.next().is_some_and(|ch| ch.is_alphanumeric())
-             {
-            self.short_options.insert(short.last().unwrap(), argument_type);
+        else if option.starts_with("-") {
+            let short = Self::parse_short_option(option)
+                .ok_or_else(|| format!("{} is not a valid long option", option))?;
+
+            self.short_options.insert(short, argument_type);
+            Ok(())
+        }
+        else {
+            Err(format!("{} doesn't have a valid prefix", option))
         }
     }
 
     pub fn has_option(&self, option: &str) -> bool {
-        if option.start
+        option.strip_prefix("--").is_some_and(|result| self.long_options.contains_key(result))
+            || Self::parse_short_option(option)
+            .is_some_and(|result| self.short_options.contains_key(&result))
+    }
+
+    pub fn get_type(&self, option: &str) -> Option<&ArgType> {
+        if let Some(long) = option.strip_prefix("--") {
+            self.long_options.get(long)
+        }
+        else if let Some(short) = Self::parse_short_option(option) {
+            self.short_options.get(&short)
+        }
+        else {
+            None
+        }
     }
 }
 
 
-
-
-
-/*pub struct Options {
-    args: HashMap<String, ArgType>
-}*/
-
-
-
-// impl Options {
-//
-//     pub fn new() -> Self {
-//         Self {
-//             args: HashMap::new()
-//         }
-//     }
-//
-//     pub fn add_option(&mut self, flag: &str, option: ArgType) -> Result<(), String> {
-//
-//         if flag.starts_with("--") {
-//             self.args.insert(flag, option);
-//             Ok(())
-//         }
-//         else {
-//             Err(format!("Error: {} doesn't have a flag prefix", flag))
-//         }
-//     }
-//
-//     pub fn has_option(&self, flag: &str) -> bool {
-//         self.args.contains_key(flag)
-//     }
-//
-//     pub fn get_option_type(&self, flag: &str)  -> Result<ArgType, String> {
-//         self.args
-//             .get(flag)
-//             .cloned()
-//             .ok_or_else(|| format!("Unknown option: {}", flag))
-//     }
-// }
 
 pub struct Args {
     args: HashMap<String, String>,
