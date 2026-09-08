@@ -1,4 +1,8 @@
+use std::cmp::PartialEq;
 use std::collections::HashMap;
+use std::env;
+
+
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ArgType {
@@ -31,16 +35,12 @@ impl Options {
     }
 
     fn parse_short_option(option: &str) -> Option<char> {
-        let mut option = option.chars();
+        let mut chars = option.chars();
 
-        if option.next_back()?.eq(&'-')
-            && option.next()?.is_alphanumeric()
-            && option.next().is_none() {
-
-            return Some(option.nth(0)?)
+        match (chars.next(), chars.next(), chars.next()) {
+            (Some('-'), Some(ch), None) if ch.is_alphanumeric() => Some(ch),
+            _ => None,
         }
-
-        None
     }
     pub fn new() -> Self {
         Options {
@@ -51,17 +51,16 @@ impl Options {
 
     pub fn add_option(&mut self, option: &str, argument_type: ArgType) -> Result<(), String>{
 
-        //TODO: Почему-то это условие всегда выдает тру
-        if option.starts_with("--") {
+        if option.len() > 2 {
             let long = Self::parse_long_option(option)
                 .ok_or_else(|| format!("{} is not a valid long option", option))?;
 
             self.long_options.insert(long, argument_type);
             Ok(())
         }
-        else if option.starts_with("-") {
+        else if option.len() == 2 {
             let short = Self::parse_short_option(option)
-                .ok_or_else(|| format!("{} is not a valid long option", option))?;
+                .ok_or_else(|| format!("{} is not a valid short option", option))?;
 
             self.short_options.insert(short, argument_type);
             Ok(())
@@ -92,12 +91,46 @@ impl Options {
 
 
 
-pub struct Args {
+pub struct ProcessedArgs {
     args: HashMap<String, String>,
-    last_value: Option<String>
+    operands: Vec<String>
 }
 
-impl Args {
+impl ProcessedArgs {
+
+
+
+    pub fn process(valid_options: Options) -> Result<Self, String> {
+        let mut result = ProcessedArgs {
+            args: HashMap::new(),
+            operands: Vec::new()
+        };
+
+        let args = env::args();
+        let mut it = args.into_iter();
+
+        while let Some(arg) = it.next() {
+            if arg == "--" {
+                break;
+            }
+
+            //let (arg, value) = arg.split_once('=')
+            if valid_options.get_type(&arg).is_some_and(|t| *t != ArgType::None) {
+                let option = arg.strip_prefix("--")
+                                .ok_or(arg.strip_prefix("-")).unwrap().to_string();
+                let value = it.next()
+                              .ok_or_else(|| format!("Out of bounds: {} option must have a value, but program has reached end of Args", arg))?;
+
+                result.args.insert(option, value);
+            }
+
+        };
+
+        result.operands.extend(it);
+
+        Ok(result)
+
+    }
 /*    fn parse(viable_options: Options) -> Result<Self, String> {
         let mut raw_args = env::args();
 

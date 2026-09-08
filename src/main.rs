@@ -34,6 +34,8 @@ fn main() {
 
     let mut option = Options::new();
     option.add_option( "--help", ArgType::None ).unwrap();
+
+    assert_eq!("-h".len(), 2);
     option.add_option("-h", ArgType::None).unwrap();
 
     assert_eq!(option.has_option("--help"), true);
