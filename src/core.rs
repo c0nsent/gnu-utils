@@ -98,7 +98,24 @@ pub struct ProcessedArgs {
 
 impl ProcessedArgs {
 
+    fn process_short_option(option: &str, arg_type: ArgType) -> Option<[String; 2]> {
 
+        let (option, operand)
+            = option.split_once("=").unwrap_or(option.split_at(1));
+
+        if (arg_type != ArgType::None) ^ operand.is_empty(){
+            Some([option.to_string(), operand.to_string()])
+        }
+        else {
+            None
+        }
+    }
+
+    fn process_long_option(option: &str, arg_type: ArgType) ->  Option<[String; 2]>{
+        let (option, operand) = option.split_once("=")?;
+
+        Some([option.to_string(), operand.to_string()])
+    }
 
     pub fn process(valid_options: Options) -> Result<Self, String> {
         let mut result = ProcessedArgs {
