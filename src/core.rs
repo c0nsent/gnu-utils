@@ -89,7 +89,10 @@ impl Options {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Errors {
 
+}
 
 pub struct ProcessedArgs {
     args: HashMap<String, String>,
@@ -97,6 +100,8 @@ pub struct ProcessedArgs {
 }
 
 impl ProcessedArgs {
+
+
 
     fn process_short_option(option: &str, arg_type: ArgType) -> Option<[String; 2]> {
 
@@ -124,11 +129,28 @@ impl ProcessedArgs {
         };
 
         let args = env::args();
-        let mut it = args.into_iter();
+        let mut it = args.into_iter().peekable();
 
         while let Some(arg) = it.next() {
             if arg == "--" {
                 break;
+            }
+
+            let arg_type = valid_options.get_type(&arg);
+            if arg_type.is_some_and(|t| *t == ArgType::None) {
+                result.args.insert(arg, String::from(""));
+            }
+            else if arg_type.is_some_and(|t| *t != ArgType::None ) {
+                let operand = it.peek()
+                    .ok_or_else(|| format!("Out of bounds: {} option must have a value, \
+                    but program has reached end of Args", arg))?.clone();
+
+                if operand.starts_with("--") || operand.starts_with("-") {
+                    return Err(format!("Option {} must have an operand, but another option is passed", arg))
+                }
+                else {
+                    result.args.insert(arg, operand);
+                }
             }
 
             //let (arg, value) = arg.split_once('=')
